@@ -1,0 +1,86 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[english]{babel}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{url,hyperref,graphicx,float,times}
+\usepackage{sectsty}
+\usepackage{authblk}
+\usepackage{textcomp}
+\renewcommand{\refname}{}
+
+\setlength{\paperheight}{297mm}
+\setlength{\paperwidth}{210mm}
+\setlength{\voffset}{-12mm}
+\setlength{\topmargin}{0mm}
+\setlength{\headsep}{8mm}
+\setlength{\headheight}{10mm}
+\setlength{\textheight}{235mm}
+\setlength{\hoffset}{-4mm}
+\setlength{\textwidth}{166mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\evensidemargin}{0mm}
+\setlength{\marginparwidth}{0mm}
+\setlength{\marginparpush}{0mm}
+\setlength{\columnsep}{6mm}
+\setlength{\parindent}{6mm}
+\setlength{\parskip}{2mm}
+
+%% insert table
+%% use as \tabin{size_in_mm}{label}{caption}{table_data}
+\newcounter{tabcounter}
+\def\tabin #1#2#3#4{
+\refstepcounter{tabcounter} \label{#2}
+\[ \makebox[#1][c]{#4} \]
+%\vspace{0mm}
+\begin{center}
+  \parbox{7cm}{{\bf Table \arabic{tabcounter}:}\quad {\it #3 } } \\
+\end{center}
+}
+
+\title{\LARGE
+Title
+}
+
+\author[*]{\large
+{\bf Ching-Chun (Jim) Huang}\thanks{jserv@ccns.ncku.edu.tw}}
+\author[**]{\large
+{\bf Chung-Fan Yang}\thanks{E24026048@mail.ncku.edu.tw}}
+\affil[*]{Department of Computer Science and Information Engineering,
+\newline
+National Cheng Kung University, Taiwan
+\newline
+No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}
+\affil[**]{Department of Electrical and Electronic Engineering,
+\newline
+National Cheng Kung University, Taiwan
+\newline
+No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}
+\date{}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+\vspace{10mm}
+
+\begin{multicols}{2}
+
+\section{Introduction}
+
+\section{Related Work}
+
+\section{Methodology Environment}
+
+\section{Methodology Result}
+
+\bibliographystyle{unsrt}
+\begin{thebibliography}{9}%use this if you have <=9 bib refs
+	\bibitem {rtai}{\it https://www.rtai.org/}
+\end{thebibliography}
+
+\end{multicols}
+\end{document}
