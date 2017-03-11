@@ -75,6 +75,41 @@ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}
 
 \section{Methodology Environment}
 
+    Based on the works presented above, we had found out several problems in common methodology method used currently.
+    First, the methodology tool, e.g. cyclictest, is over-simplified. It only gives the wakeup latency measurements,
+    which sometimes is not the main or only performance bottle-neck of a real-time system. Also, general profiling
+    tools, e.g. perf, is typically utilizing the sampling methodology method, lacking high fidelity, all-recorded
+    profiling result of the target system in microsecond scale, which is usually seen in real-time system tuning. In
+    addition, the behavior and loading characteristic of work-load used during test, e.g. hackbench, stress, etc. are
+    far from the real target applications. These problems not only would significantly reduce the effectiveness of
+    tuning target system, but also will cause actual hazards, harming the real-time performance, obscure.
+
+    Our approach to counter these problems includes a new profiling method and a test work-load, which is able to
+    represent the target real-time application. The new profiling tool is derived from paper A Decade of Wasted Cores,
+    published in EuroSys 2016. In A decade of Wasted Cores, authors have development a profiler which instruments the
+    scheduler of Linux Kernel, extracting scheduling information. Based on this work we have extended the ability of the
+    profiler to extract the running entity of each core of the target system also the context-switching information,
+    including time and target process id (PID). This enabled us to record and collect kernel scheduling information,
+    running PID of each processor core fully during the execution of work-load. The recorded data resolution is based on
+    the timer resolution of kernel scheduler. On x86-64 and ARM platform, the resolution could achieve sub-microsecond
+    level. This gives us the advantage to justify when would the processor core executes the real-time task, how
+    work-loads were scheduled by the kernel scheduler, and random scheduling events. This level of detail could not be
+    achieved with the previous mentioned tools, which only utilizes the processor's performance measurement unit (PMU),
+    lacking the fidelity requires during the tuning of real-time system.
+
+    We also created a testing framework which resembled target application execution behavior, this application could be
+    utilized as the testing work-load during methodology. In addition, application created using this framework has the
+    ability to be compiled either as user-space program or kernel module. This would grants us the ability to observe
+    the characteristic of target application execution in both user-space and kernel-space. This would gives the insight
+    of system-call and user-space I/O overhead. In addition, this framework, while executing, would do a series of
+    identically executions and record the execution time of each turn. These data can be used to determined the
+    execution jitter of the application on the real-time system, which besides wakeup latency. This could be used to
+    reflect to the system-call overhead on the system.
+
+    In aid of these developed tools and work presented above, we proposed a high accuracy methodology system, and apply
+    this on various platform, including x86-64 and ARM.
+    
+
 \section{Methodology Result}
 
 \bibliographystyle{unsrt}
