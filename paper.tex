@@ -1,73 +1,38 @@
-\documentclass[10pt,a4paper]{article}
+\documentclass[conference]{IEEEtran}
 \usepackage[english]{babel}
 \usepackage{multicol}
 \usepackage{multirow}
 \usepackage{url,hyperref,graphicx,float,times}
-\usepackage{sectsty}
-\usepackage{authblk}
+%\usepackage{sectsty}
+%\usepackage{authblk}
 \usepackage{textcomp}
-\renewcommand{\refname}{}
+\usepackage{cite}
+% \graphicspath{{../pdf/}{../jpeg/}}
+% \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\usepackage[caption=false,font=footnotesize]{subfig}
 
-\setlength{\paperheight}{297mm}
-\setlength{\paperwidth}{210mm}
-\setlength{\voffset}{-12mm}
-\setlength{\topmargin}{0mm}
-\setlength{\headsep}{8mm}
-\setlength{\headheight}{10mm}
-\setlength{\textheight}{235mm}
-\setlength{\hoffset}{-4mm}
-\setlength{\textwidth}{166mm}
-\setlength{\oddsidemargin}{0mm}
-\setlength{\evensidemargin}{0mm}
-\setlength{\marginparwidth}{0mm}
-\setlength{\marginparpush}{0mm}
-\setlength{\columnsep}{6mm}
-\setlength{\parindent}{6mm}
-\setlength{\parskip}{2mm}
-
-%% insert table
-%% use as \tabin{size_in_mm}{label}{caption}{table_data}
-\newcounter{tabcounter}
-\def\tabin #1#2#3#4{
-\refstepcounter{tabcounter} \label{#2}
-\[ \makebox[#1][c]{#4} \]
-%\vspace{0mm}
-\begin{center}
-  \parbox{7cm}{{\bf Table \arabic{tabcounter}:}\quad {\it #3 } } \\
-\end{center}
-}
-
-\title{\LARGE
-Title
-}
-
-\author[*]{\large
-{\bf Ching-Chun (Jim) Huang}\thanks{jserv@ccns.ncku.edu.tw}}
-\author[**]{\large
-{\bf Chung-Fan Yang}\thanks{E24026048@mail.ncku.edu.tw}}
-\affil[*]{Department of Computer Science and Information Engineering,
-\newline
-National Cheng Kung University, Taiwan
-\newline
-No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}
-\affil[**]{Department of Electrical and Electronic Engineering,
-\newline
-National Cheng Kung University, Taiwan
-\newline
-No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}
-\date{}
-
+\usepackage{url}
 
 \begin{document}
+
+\title{Title}
+
+\author{\IEEEauthorblockN{Ching-Chun (Jim) Huang}
+\IEEEauthorblockA{Department of Computer Science and\\Information Engineering\\
+National Cheng Kung University, Taiwan\\
+No.1, University Road, Tainan City 701, Taiwan (R.O.C.)\\
+Email: jserv@ccns.ncku.edu.tw}
+\and
+\IEEEauthorblockN{Chung-Fan Yang}
+\IEEEauthorblockA{Department of Electrical Engineering\\
+National Cheng Kung University, Taiwan\\
+No.1, University Road, Tainan City 701, Taiwan (R.O.C.)\\
+Email: E24026048@mail.ncku.edu.tw}}
 
 \maketitle
 
 \begin{abstract}
 \end{abstract}
-
-\vspace{10mm}
-
-\begin{multicols}{2}
 
 \section{Introduction}
 
@@ -76,26 +41,28 @@ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}
 \section{Methodology}
 
     Based on the works presented above, we had found out several problems in common methodology method used currently.
-    First, the methodology tool, e.g. cyclictest, is over-simplified. It only gives the wakeup latency measurements,
-    which sometimes is not the main or only performance bottle-neck of a real-time system. Also, general profiling
-    tools, e.g. perf, is typically utilizing the sampling methodology method, lacking high fidelity, all-recorded
-    profiling result of the target system in microsecond scale, which is usually seen in real-time system tuning. In
-    addition, the behavior and loading characteristic of work-load used during test, e.g. hackbench, stress, etc. are
-    far from the real target applications. These problems not only would significantly reduce the effectiveness of
-    tuning target system, but also will cause actual hazards, harming the real-time performance, obscure.
+    First, the methodology tool, e.g. cyclictest \cite{cyclictest} \cite{rt-tests}, is over-simplified. It only gives the wakeup latency
+    measurements, which sometimes is not the main or only performance bottle-neck of a real-time system. Also, general
+    profiling tools, e.g. perf \cite{perf}, is typically utilizing the sampling methodology method, lacking high
+    fidelity, all-recorded profiling result of the target system in microsecond scale, which is usually seen in
+    real-time system tuning. In addition, the behavior and loading characteristic of work-load used during test, e.g.
+    hackbench, stress \cite{rt-tests}, etc. are far from the real target applications. These problems
+    not only would significantly reduce the effectiveness of tuning target system, but also will cause actual hazards,
+    harming the real-time performance, obscure.
 
     Our approach to counter these problems includes a new profiling method and a test work-load, which is able to
     represent the target real-time application. The new profiling tool is derived from paper A Decade of Wasted Cores,
-    published in EuroSys 2016. In A decade of Wasted Cores, authors have development a profiler which instruments the
-    scheduler of Linux Kernel, extracting scheduling information. Based on this work we have extended the ability of the
-    profiler to extract the running entity of each core of the target system also the context-switching information,
-    including time and target process id (PID). This enabled us to record and collect kernel scheduling information,
-    running PID of each processor core fully during the execution of work-load. The recorded data resolution is based on
-    the timer resolution of kernel scheduler. On x86-64 and ARM platform, the resolution could achieve sub-microsecond
-    level. This gives us the advantage to justify when would the processor core executes the real-time task, how
-    work-loads were scheduled by the kernel scheduler, and random scheduling events. This level of detail could not be
-    achieved with the previous mentioned tools, which only utilizes the processor's performance measurement unit (PMU),
-    lacking the fidelity requires during the tuning of real-time system.
+    published during EuroSys 2016 \cite{Lozi:2016:LSD:2901318.2901326}. In A decade of Wasted Cores, authors have
+    development a profiler which instruments the scheduler of Linux Kernel, extracting scheduling information. Based on
+    this work we have extended the ability of the profiler to extract the running entity of each core of the target
+    system also the context-switching information, including time and target process id (PID). This enabled us to record
+    and collect kernel scheduling information, running PID of each processor core fully during the execution of
+    work-load. The recorded data resolution is based on the timer resolution of kernel scheduler. On x86-64 and ARM
+    platform, the resolution could achieve sub-microsecond level. This gives us the advantage to justify when would the
+    processor core executes the real-time task, how work-loads were scheduled by the kernel scheduler, and random
+    scheduling events. This level of detail could not be achieved with the previous mentioned tools, which only utilizes
+    the processor's performance measurement unit (PMU), lacking the fidelity requires during the tuning of real-time
+    system.
 
     We also created a testing framework which resembled target application execution behavior, this application could be
     utilized as the testing work-load during methodology. In addition, application created using this framework has the
@@ -106,16 +73,64 @@ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}
     execution jitter of the application on the real-time system, which besides wakeup latency. This could be used to
     reflect to the system-call overhead on the system.
 
-    In aid of these developed tools and work presented above, we proposed a high accuracy methodology system, and apply
-    this on various platform, including x86-64 and ARM.
-    
-
 \section{Experiment}
 
-\bibliographystyle{unsrt}
-\begin{thebibliography}{9}%use this if you have <=9 bib refs
-	\bibitem {rtai}{\it https://www.rtai.org/}
-\end{thebibliography}
+    In aid of these developed tools and work presented above, we proposed a high accuracy methodology system, and apply
+    this on various platform, including x86-64 and ARM. The experiment platform is running Linux Kernel version 4.4 with
+    PR\textunderscore RT \cite{preemptrt} patch and it's built with buildroot \cite{buildroot} package.
+    
+\subsection{Profiling Tool Evaluation} 
+    
+    With the newly developed profiling tool, we were able to capture a specified task's execution period in microsecond
+    level. To evaluate this we execute various work-load on the experiment platform, Altera Cyclone5 SoC development
+    kit, hosting dual core ARM Cortex-A9 processor with 1Gb memory. First, a cyclistest executing solely is shown in
+    figure 1. The area high lighted with gray are the real-time task being executed by cpu, with black bars marking the
+    switching-in and switching-out point. Also, cooperating with the heat map of scheduler run-queue size shown in
+    figure 2, we can tell that whether other tasks arrive in the scheduler together with real-time task with short
+    inter-arrival time. In these circumstances, preemption and re-scheduling might occur. While testing how different
+    loading conditions interference the real-time task, we observed that the jitter will increase when the number of
+    tasks in system (real-time tasks and work-load tasks) increases. Diving into this problem, we modified the profiling
+    tool to record the scheduling duration of real-time task. The result of profiling is in figure 3-a and 3-b, showing
+    that in no-load and mild-load condition, the schedule duration are less than 10us, but with heavy-load condition,
+    shown in figure 3-c, the schedule duration will ramp up to 30us in maximum. This hints us that although the CFS
+    scheduler is able to determine which task to be switched-in in O(1) time \cite{cfs}, additional overhead exist. This overhead
+    would increase alone with the system's loading condition.
 
-\end{multicols}
+\subsection{Comparison of Kernel and User-space Execution}
+
+\subsubsection{Profiling System Call Overhead}
+
+    With our work-load framework, we constructed a work-load called mctest, which resemble a real-time robot control
+    system. This algorithm includes various computational heavy code and system-calls. Putting this work-load into
+    execution on Freesacle i.mx6 Sabre platform which hosted 4 core ARM Cortex-A9 processor with 1Gb memory. We also
+    enabled tickless feature \cite{tickless} of Linux kernel and isolate CPU 1 from scheduler use \cite{isolatedcpu}.
+    Putting mctest on isolated and tickless CPU 1, we recorded the execution jitter. The result is shown in figure 4.
+    With this result, we could suggest that the system call generates a large amount of jitter. And the overhead of
+    system call will increase alone with the loading condition of the system. Figure 5 shows the execution jitter with
+    load. As a result, rewriting real-time application as a kernel module is the only feasible approach.
+
+\subsubsection{Kernel Mode Linux}
+    
+    While rewriting the real-time application in kernel module would reduce the execution jitter. This approach is
+    difficult and tedious. Thus, it's not feasible to be wildly deployed. As the source of jitter, system call, has been
+    identified. We applied an different approach, Kernel Mode Linux (KML) \cite{KML} \cite{KMLConf}. KML enables the
+    ability for specified user-space program to access kernel address space directly. Thus, system calls become jump
+    instructions, not instruction trapping the processor. In addition, we have also rewired system calls, which have
+    vDSO implementations \cite{vDSO}, to use vDSO implementation via KML. This approach, executing in the same
+    environment as above section, could reduce the user-space execution jitter comparable to kernel module approach,
+    shown in figure 6. Therefore, KML have enable the ability to write real-time application user-space and exploit
+    kernel-space performance to it.
+   
+\section{Conclusion}
+
+    We have evaluated the real-time behavior of Linux by profiling kernel scheduler and measuring the latency of various
+    kernel variants. An intensive interrupt load can cause long OS latencies due to the design of the interrupt
+    processing mechanism. We proposed new tools to visualize task scheduling in fine-grained scale(microsecond level).
+    This enabled us not only focusing on interrupt latency, but also scheduler durations, lock, and etc. It would thus
+    be highly desirable to combine existing techniques, e.g KML, isolated CPU, tickless kernel, to improve task
+    responsiveness under various target application characteristics, on top of PREEMPT\textunderscore RT.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
 \end{document}
