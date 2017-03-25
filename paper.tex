@@ -83,10 +83,10 @@ E24026048@mail.ncku.edu.tw}}
     these tuning techniques on Freesacle i.mx6 Sabre platform. Measurement results are shown in figure
     \ref{fig:imx6_mctest_v}, \ref{fig:imx6_mctest_iso}, and \ref{fig:imx6_mctest_lock}, verifying the effectiveness of
     these known tuning techniques and providing results as a baseline. We are able to see the WECT with and without
-    tuning are 100us and 100us. This gives us the hint that the scheduling would harms the real-time performance. This
+    tuning are 153us and 86us. This gives us the hint that the scheduling would harms the real-time performance. This
     scheduling overhead could be separated into 2 parts, scheduler overhead and cache contention on SMP system. With L2
     Cache lockdown technique we are able to mitigate most of the cache contention, but still resulting some degree of
-    jitter about 100us
+    jitter about 76us in maximum.
 
     \begin{figure} \centering \includegraphics[width=3in]{img/mctest-none.png} \caption{Mctest on i.mx6 Sabre}
     \label{fig:imx6_mctest_v} \end{figure}
@@ -100,7 +100,7 @@ E24026048@mail.ncku.edu.tw}}
 \subsection{System Call Overhead and Kernel Mode Linux}
 
     In addition, we compared the user-space mctest result with kernel space measurement, shown in figure
-    \ref{fig:imx6_mctest_k_v} and \ref{fig:imx6_mctest_k_lock} with WECT of 50us and 50us. With these result, we are
+    \ref{fig:imx6_mctest_k_v} and \ref{fig:imx6_mctest_k_lock} with WECT of 27us and 17us. With these result, we are
     able to identify the sources of jitter are system calls. To mitigate these, we first proposed to rewrite real-time
     applications as kernel modules. But this is tedious and making the debugging process difficult. Thus, we proposed a
     second approach, Kernel Mode Linux(KML) \cite{KML} \cite{KMLConf}. KML enables the ability for specified user-space
@@ -108,7 +108,7 @@ E24026048@mail.ncku.edu.tw}}
     processor. Also, this would mitigate the cache contention while switching in and out the kernel during system call.
     In addition, we have also rewired system calls, which have vDSO implementations \cite{vDSO}, to use vDSO
     implementation via KML. The result of user-space program running in KML is shown in figure \ref{fig:imx6_mctest_kml}
-    with WECT of 20us, which proving the effectiveness of jitter mitigation from KML.
+    with WECT of 27us (excluding initialization jitter), which proving the effectiveness of jitter mitigation from KML.
 
     \begin{figure} \centering \includegraphics[width=3in]{img/mctest-k-none.png} \caption{Kernel mctest on i.mx6 Sabre}
     \label{fig:imx6_mctest_k_v} \end{figure}
@@ -129,7 +129,7 @@ E24026048@mail.ncku.edu.tw}}
     context-switching events with switched-to PID of each processors. A analyzer will process the recorded data and
     gives out the scheduler duration of a specified process, enabling us the understand the scheduling of real-time task
     in SMP system. The result of running a solo instance of cyclictest on SoC FPGA Development Kit is shown in figure
-    \ref{fig:sd_solo}. The latency could be considered static with maximum 10us. This result matches traditional
+    \ref{fig:sd_solo}. The latency could be considered static with maximum 17us. This result matches traditional
     considerations, but with the interference from other work-load, the jitter will start to emerge.
 
     \begin{figure} \centering \includegraphics[width=3.5in]{img/sd-solo.png} \caption{Scheduler duration of solo
@@ -141,7 +141,7 @@ E24026048@mail.ncku.edu.tw}}
     condition, which has 3 stress threads, and a heavy loading condition, which has 8 stress threads. The result of mild
     loading condition is shown in figure \label{fig:sd_mild}. This result also exhibits a mostly static scheduler
     duration with seldom jitter with maximum of 20us. But putting the system in to heavy loading condition, the result,
-    shown in figure \ref{fig:sd_heavy} exhibits random jitter from 10us to 30us. The spread of distribution of scheduler
+    shown in figure \ref{fig:sd_heavy} exhibits random jitter up to 34us. The spread of distribution of scheduler
     duration, shown in figure \ref{fig:sd_heavy_d}, would become wilder. This informs us that the scheduler duration is
     not a static value and will increase alone with the system's load. Also informs that the scheduler duration contains
     but not only contains CFS algorithm task selection process which is proved to be O(1).
@@ -162,9 +162,9 @@ E24026048@mail.ncku.edu.tw}}
     thread being scheduler onto second processor. On most of the time, this execution schema results the same result as
     cyclictest executing solely in the system. But on some occasions, the cyclictest main thread would be waken-up and
     enter run-queue with short inter-arrival time against the cyclictest real-time thread, which was also being
-    waken-up. When this event happened, the scheduler duration will raise to 30us. This result, shown in figure
-    \ref{fig:sd_mctest} hints us that not only long term overload system would exhibit large scheduler duration, but
-    also short burst a overloading condition during the real-time task scheduling and execution would cause the
+    waken-up. When this event happened, the scheduler duration will raise to maximum of 23us. This result, shown in
+    figure \ref{fig:sd_mctest} hints us that not only long term overload system would exhibit large scheduler duration,
+    but also short burst a overloading condition during the real-time task scheduling and execution would cause the
     scheduler duration to raise.
 
     \begin{figure} \centering \includegraphics[width=3.5in]{img/sd-mctest.png} \caption{Scheduler duration of cyclictest
