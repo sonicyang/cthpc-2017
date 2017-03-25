@@ -17,17 +17,11 @@
 
 \title{Title}
 
-\author{\IEEEauthorblockN{Ching-Chun (Jim) Huang}
-\IEEEauthorblockA{Department of Computer Science and\\Information Engineering\\
-National Cheng Kung University, Taiwan\\
-No.1, University Road, Tainan City 701, Taiwan (R.O.C.)\\
-Email: jserv@ccns.ncku.edu.tw}
-\and
-\IEEEauthorblockN{Chung-Fan Yang}
-\IEEEauthorblockA{Department of Electrical Engineering\\
-National Cheng Kung University, Taiwan\\
-No.1, University Road, Tainan City 701, Taiwan (R.O.C.)\\
-Email: E24026048@mail.ncku.edu.tw}}
+\author{\IEEEauthorblockN{Ching-Chun (Jim) Huang} \IEEEauthorblockA{Department of\\Computer Science and Information
+Engineering\\National Cheng Kung University, Taiwan\\ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)\\ Email:
+jserv@ccns.ncku.edu.tw} \and \IEEEauthorblockN{Chung-Fan Yang} \IEEEauthorblockA{Department of Electrical Engineering\\
+National Cheng Kung University, Taiwan\\ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)\\ Email:
+E24026048@mail.ncku.edu.tw}}
 
 \maketitle
 
@@ -40,87 +34,108 @@ Email: E24026048@mail.ncku.edu.tw}}
 
 \section{Methodology}
 
-    Based on the works presented above, we had found out several problems in common methodology method used currently.
-    First, the methodology tool, e.g. cyclictest \cite{cyclictest} \cite{rt-tests}, is over-simplified. It only gives the wakeup latency
-    measurements, which sometimes is not the main or only performance bottle-neck of a real-time system. Also, general
-    profiling tools, e.g. perf \cite{perf}, is typically utilizing the sampling methodology method, lacking high
-    fidelity, all-recorded profiling result of the target system in microsecond scale, which is usually seen in
-    real-time system tuning. In addition, the behavior and loading characteristic of work-load used during test, e.g.
-    hackbench, stress \cite{rt-tests}, etc. are far from the real target applications. These problems
-    not only would significantly reduce the effectiveness of tuning target system, but also will cause actual hazards,
-    harming the real-time performance, obscure.
+    Based on the works presented above, we have methods to measure the overall wake-up latency and context-switch
+    latency, using cyclictest and lmbench. Also, it's able to show that the CFS algorithm has O(1) complexity on
+    selecting next task, giving static latency. Thus, overall  and parts of latency of a Linux system can be determined,
+    but the measurement methodology and tool of scheduler latency, shown in figure \ref{sec:latency_timeline}, are
+    lacking. Therefore, we developed a evaluation tool of scheduler duration jitter, based on methodology method of A
+    Decade of Wasted Cores \cite{Lozi:2016:LSD:2901318.2901326}. This methodology method enabled us to record the
+    scheduler states including, executing process ID (PID), PID in scheduler run-queue, context switch points, timer
+    interrupt execution, scheduling events, etc. on per processor core basis. This methodology method differs from
+    profiling based methodology tools, e.g. perf \cite{perf}, lacking high fidelity, all-recorded profiling result of
+    the target system. Our proposed tool can do full-detailed record in microsecond scale on x86-64 and ARM system,
+    which is able to capture the impact to real-time performance of occasional short-burst scheduler events, which only
+    last less that 10us. These events are mostly not shown in the result of sampling based measurement which focus on
+    average-case execution time(ACET). By analyzing full-detailed record, we are able to not only capture the worst-case
+    execution time (WCET), but also understand the cause of these incidents.
 
-    Our approach to counter these problems includes a new profiling method and a test work-load, which is able to
-    represent the target real-time application. The new profiling tool is derived from paper A Decade of Wasted Cores,
-    published during EuroSys 2016 \cite{Lozi:2016:LSD:2901318.2901326}. In A decade of Wasted Cores, authors have
-    development a profiler which instruments the scheduler of Linux Kernel, extracting scheduling information. Based on
-    this work we have extended the ability of the profiler to extract the running entity of each core of the target
-    system also the context-switching information, including time and target process id (PID). This enabled us to record
-    and collect kernel scheduling information, running PID of each processor core fully during the execution of
-    work-load. The recorded data resolution is based on the timer resolution of kernel scheduler. On x86-64 and ARM
-    platform, the resolution could achieve sub-microsecond level. This gives us the advantage to justify when would the
-    processor core executes the real-time task, how work-loads were scheduled by the kernel scheduler, and random
-    scheduling events. This level of detail could not be achieved with the previous mentioned tools, which only utilizes
-    the processor's performance measurement unit (PMU), lacking the fidelity requires during the tuning of real-time
-    system.
-
-    We also created a testing framework which resembled target application execution behavior, this application could be
-    utilized as the testing work-load during methodology. In addition, application created using this framework has the
-    ability to be compiled either as user-space program or kernel module. This would grants us the ability to observe
+    In addition, the behavior and loading characteristic of typical work-load used during test in above works, e.g.
+    hackbench, stress \cite{rt-tests}, etc. are far from the real-world real-time applications. These problems not only
+    would reduce the significant of target system jitter measurement, but also will make incidents, harming the
+    real-time performance, obscure. In result of this frustration, we also created a testing framework hosing an
+    algorithm which resembled a real-time robot control system execution behavior, named mctest. This work-load
+    application has the ability to be compiled either as user-space program or kernel module, provides observation of
     the characteristic of target application execution in both user-space and kernel-space. This would gives the insight
-    of system-call and user-space I/O overhead. In addition, this framework, while executing, would do a series of
-    identically executions and record the execution time of each turn. These data can be used to determined the
-    execution jitter of the application on the real-time system, which besides wakeup latency. This could be used to
-    reflect to the system-call overhead on the system.
+    of system-call and user-space I/O overhead, which does not exist in kernel module. In addition, mctest would do a
+    series of identically executions and record the execution time of each turn. These records can be used to determined
+    the execution jitter of the application on the real-time system, which besides wakeup latency. This could be used to
+    reflect to the system-call overhead of the system. We have been utilizing mctest as the testing work-load and jitter
+    measurement tool during methodology.
+
+    \begin{figure} \centering \includegraphics[width=3.0in]{img/f1.png} \caption{Task Wake-up Latency}
+    \label{fig:latency_timeline} \end{figure}
 
 \section{Experiment}
 
-    In aid of these developed tools and work presented above, we proposed a high accuracy methodology system, and apply
-    this on various platform, including x86-64 and ARM. The experiment platform is running Linux Kernel version 4.4 with
-    PR\textunderscore RT \cite{preemptrt} patch and it's built with buildroot \cite{buildroot} package.
+    In aid of these developed tools and work presented above, we did multiple experiments and measurement of 2 ARM
+    Cortex-A9 based platform, shown in table I. These platforms are selected as CMP based ARM system are emerging and
+    being used in a wide field of applications. These systems are running buildroot \cite{buildroot} built Linux with
+    kernel version 4.4 and PR\textunderscore RT \cite{preemptrt} patches.
+
+    \begin{table*}[] \centering \caption{Experiment Platforms} \begin{tabular}{|l|c|c|} \hline Platform Name & Altera
+        SoC FPGA Development Kit & Freescale i.mx6 Sabre \\ \hline Processor & 2x ARM Cortex-A9 & 4x ARM Cortex-A9 \\
+        \hline Memory & 1 GB & 1 GB \\ \hline Additional configuration & None & \begin{tabular}[c]{@{}c@{}}L2 Cache
+        locked down to CPU1,\\ Isolated CPU1,\\ Enabled tickless on CPU1 \\ Real-time task pinned to CPU1 \end{tabular}
+    \\ \hline \end{tabular} \end{table*}
+
+    Our experiment begins with known tuning practices which includes processor isolation \cite{isolatedcpu}, tickless
+    feature of kernel \cite{tickless}, L2 cache lockdown. We compared the measurement result of mctest with and without
+    these tuning techniques on Freesacle i.mx6 Sabre platform. Measurement results are shown in figure 2 to 4, verifying
+    the effectiveness of these known tuning techniques and providing results as a baseline. We are able to see the WECT
+    with and without tuning are 100us and 100us. This gives us the hint that the scheduling  would harms the real-time
+    performance. This scheduling overhead could be separated into 2 parts, scheduler overhead and cache contention on
+    SMP system. With L2 Cache lockdown technique we are able to mitigate most of the cache contention, but still
+    resulting some degree of jitter about 100us
     
-\subsection{Profiling Tool Evaluation} 
+\subsection{System Call Overhead and Kernel Mode Linux}
+
+    In addition, we compared the user-space mctest result with kernel space measurement, shown in figure 6 and 7 with
+    WECT of 50us and 50us. With these result, we are able to identify the sources of jitter are system calls. To
+    mitigate these, we first proposed to rewrite real-time applications as kernel modules. But this is tedious and
+    making the debugging process difficult. Thus, we proposed a second approach, Kernel Mode Linux(KML) \cite{KML}
+    \cite{KMLConf}. KML enables the ability for specified user-space program running in kernel memory space. Thus,
+    system calls become jump instructions, not instruction trapping the processor. Also, this would mitigate the cache
+    contention while switching in and out the kernel during system call. In addition, we have also rewired system calls,
+    which have vDSO implementations \cite{vDSO}, to use vDSO implementation via KML. The result of user-space program
+    running in KML is shown in figure 8 with WECT of 20us, which proving the effectiveness of jitter mitigation from
+    KML.
     
-    With the newly developed profiling tool, we were able to capture a specified task's execution period in microsecond
-    level. To evaluate this we execute various work-load on the experiment platform, Altera Cyclone5 SoC development
-    kit, hosting dual core ARM Cortex-A9 processor with 1Gb memory. First, a cyclistest executing solely is shown in
-    figure 1. The area high lighted with gray are the real-time task being executed by cpu, with black bars marking the
-    switching-in and switching-out point. Also, cooperating with the heat map of scheduler run-queue size shown in
-    figure 2, we can tell that whether other tasks arrive in the scheduler together with real-time task with short
-    inter-arrival time. In these circumstances, preemption and re-scheduling might occur. While testing how different
-    loading conditions interference the real-time task, we observed that the jitter will increase when the number of
-    tasks in system (real-time tasks and work-load tasks) increases. Diving into this problem, we modified the profiling
-    tool to record the scheduling duration of real-time task. The result of profiling is in figure 3-a and 3-b, showing
-    that in no-load and mild-load condition, the schedule duration are less than 10us, but with heavy-load condition,
-    shown in figure 3-c, the schedule duration will ramp up to 30us in maximum. This hints us that although the CFS
-    scheduler is able to determine which task to be switched-in in O(1) time \cite{cfs}, additional overhead exist. This overhead
-    would increase alone with the system's loading condition.
-
-\subsection{Comparison of Kernel and User-space Execution}
-
-\subsubsection{Profiling System Call Overhead}
-
-    With our work-load framework, we constructed a work-load called mctest, which resemble a real-time robot control
-    system. This algorithm includes various computational heavy code and system-calls. Putting this work-load into
-    execution on Freesacle i.mx6 Sabre platform which hosted 4 core ARM Cortex-A9 processor with 1Gb memory. We also
-    enabled tickless feature \cite{tickless} of Linux kernel and isolate CPU 1 from scheduler use \cite{isolatedcpu}.
-    Putting mctest on isolated and tickless CPU 1, we recorded the execution jitter. The result is shown in figure 4.
-    With this result, we could suggest that the system call generates a large amount of jitter. And the overhead of
-    system call will increase alone with the loading condition of the system. Figure 5 shows the execution jitter with
-    load. As a result, rewriting real-time application as a kernel module is the only feasible approach.
-
-\subsubsection{Kernel Mode Linux}
+\subsection{Scheduler Overhead Measurement}
     
-    While rewriting the real-time application in kernel module would reduce the execution jitter. This approach is
-    difficult and tedious. Thus, it's not feasible to be wildly deployed. As the source of jitter, system call, has been
-    identified. We applied an different approach, Kernel Mode Linux (KML) \cite{KML} \cite{KMLConf}. KML enables the
-    ability for specified user-space program to access kernel address space directly. Thus, system calls become jump
-    instructions, not instruction trapping the processor. In addition, we have also rewired system calls, which have
-    vDSO implementations \cite{vDSO}, to use vDSO implementation via KML. This approach, executing in the same
-    environment as above section, could reduce the user-space execution jitter comparable to kernel module approach,
-    shown in figure 6. Therefore, KML have enable the ability to write real-time application user-space and exploit
-    kernel-space performance to it.
-   
+    Identifying that scheduler is also a source of jitter, we applied our proposed scheduler profiling tool to evaluate
+    and identify of which part of the scheduling process is the source of jitter. Knowing the IRQ latency, and
+    context-switching latency, we would like to evaluate the scheduler duration. Traditionally, the latency of this part
+    is considered static with the CFS algorithm complexity, designed to be O(1), but real measurement result are
+    lacking. Thus, we set our proposed profiler to record the increment of scheduler run-queue and scheduler
+    context-switching events with switched-to PID of each processors. A analyzer will process the recorded data and
+    gives out the scheduler duration of a specified process, enabling us the understand the scheduling of real-time task
+    in SMP system. The result of running a solo instance of cyclictest on SoC FPGA Development Kit is shown in figure 9.
+    The latency could be considered static with maximum 10us. This result matches traditional considerations, but with
+    the interference from other work-load, the jitter will start to emerge.
+
+\subsubsection{Overloaded System}
+
+    We created additional work-load, executing alone with cyclictest during profiling session. We created a mild loading
+    condition, which has 3 stress threads, and a heavy loading condition, which has 8 stress threads. The result of mild
+    loading condition is shown in figure 10. This result also exhibits a mostly static scheduler duration with seldom
+    jitter with maximum of 20us. But putting the system in to heavy loading condition, the result, shown in figure 11
+    exhibits random jitter from 10us to 30us. The spread of distribution of scheduler duration, shown in figure 12,
+    would become wilder. This informs us that the scheduler duration is not a static value and will increase alone with
+    the system's load. Also informs that the scheduler duration contains but not only contains CFS algorithm task
+    selection process which is proved to be O(1).
+
+\subsubsection{Short Inter-Arrival Time}
+
+    We also captured large jitter of scheduler duration on a mild loaded system. The experiment is running mctest with
+    cyclictest. We pinned kernel module mctest to use first processor, causing cyclictest real-time thread and main
+    thread being scheduler onto second processor. On most of the time, this execution schema results the same result as
+    cyclictest executing solely in the system. But on some occasions, the cyclictest main thread would be waken-up and
+    enter run-queue with short inter-arrival time against the cyclictest real-time thread, which was also being
+    waken-up. When this event happened, the scheduler duration will raise to 30us. This result, shown in figure 13 hints
+    us that not only long term overload system would exhibit large scheduler duration, but also short burst a
+    overloading condition during the real-time task scheduling and execution would cause the scheduler duration to
+    raise.
+
 \section{Conclusion}
 
     We have evaluated the real-time behavior of Linux by profiling kernel scheduler and measuring the latency of various
