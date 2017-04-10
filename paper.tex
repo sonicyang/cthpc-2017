@@ -54,7 +54,7 @@ more core.
     Decade of Wasted Cores \cite{Lozi:2016:LSD:2901318.2901326}. This methodology method enabled us to record the
     scheduler states including, executing process ID (PID), PID in scheduler run-queue, context switch points, timer
     interrupt execution, scheduling events, etc. on per processor core basis. This methodology method differs from
-    profiling based methodology tools, e.g. perf \cite{perf}, lacking high fidelity, all-recorded profiling result of
+    profiling based methodology tools, e.g. perf \cite{perf}, lacking of high fidelity, all-recorded profiling result of
     the target system. Our proposed tool can do full-detailed record in microsecond scale on x86-64 and ARM system,
     which is able to capture the impact to real-time performance of occasional short-burst scheduler events, which only
     last less that 10us. These events are mostly not shown in the result of sampling based measurement which focus on
@@ -82,7 +82,7 @@ more core.
     In aid of these developed tools and work presented above, we did multiple experiments and measurement of 2 ARM
     Cortex-A9 based platform, shown in table I. These platforms are selected as CMP based ARM system are emerging and
     being used in a wide field of applications. These systems are running buildroot \cite{buildroot} built Linux with
-    kernel version 4.4 and PR\textunderscore RT \cite{preemptrt} patches.
+    kernel version 4.4 and PREEMPT\textunderscore RT \cite{preemptrt} patches.
 
     \begin{table*}[] \centering \caption{Experiment Platforms} \begin{tabular}{|l|c|c|} \hline Platform Name & Altera
         SoC FPGA Development Kit & Freescale i.mx6 Sabre \\ \hline Processor & 2x ARM Cortex-A9 & 4x ARM Cortex-A9 \\
