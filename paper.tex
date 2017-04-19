@@ -129,46 +129,53 @@ E24026048@mail.ncku.edu.tw}}
     context-switching events with switched-to PID of each processors. A analyzer will process the recorded data and
     gives out the scheduler duration of a specified process, enabling us the understand the scheduling of real-time task
     in SMP system. The result of running a solo instance of cyclictest on SoC FPGA Development Kit is shown in figure
-    \ref{fig:sd_solo}. The latency could be considered static with maximum 17us. This result matches traditional
+    \ref{fig:sd_noload}. The latency could be considered static with maximum 17us. This result matches traditional
     considerations, but with the interference from other work-load, the jitter will start to emerge.
 
-    \begin{figure} \centering \includegraphics[width=3.5in]{img/sd-solo.png} \caption{Scheduler duration of solo
-    cyclictest, no load} \label{fig:sd_solo} \end{figure}
+    \begin{figure} \centering \includegraphics[width=3in]{img/sd-noload.png} \caption{Scheduler duration of solo
+    cyclictest, no load} \label{fig:sd_noload} \end{figure}
 
-\subsubsection{Overloaded System}
+\subsubsection{Scheduler Duration under Different Loading Condition}
 
-    We created additional work-load, executing alone with cyclictest during profiling session. We created a mild loading
-    condition, which has 3 stress threads, and a heavy loading condition, which has 8 stress threads. The result of mild
-    loading condition is shown in figure \label{fig:sd_mild}. This result also exhibits a mostly static scheduler
-    duration with seldom jitter with maximum of 20us. But putting the system in to heavy loading condition, the result,
-    shown in figure \ref{fig:sd_heavy} exhibits random jitter up to 34us. The spread of distribution of scheduler
-    duration, shown in figure \ref{fig:sd_heavy_d}, would become wilder. This informs us that the scheduler duration is
-    not a static value and will increase alone with the system's load. Also informs that the scheduler duration contains
-    but not only contains CFS algorithm task selection process which is proved to be O(1).
+    To measure the source of scheduler duration jitter, We created additional work-load, executing alone with
+    cyclictest, schedulered with schedFIFO with highest priority in SoCFPGA based system, during profiling session. We
+    created a overloaded condition, which has 8 stress threads, doing either CPU, memory or I/O bounded task. The
+    scheduler duration of cyclictest real-time task under each type of loading condition is shown in figure
+    \ref{fig:sd_cpu}, \ref{fig:sd_memory}, and \ref{fig:sd_io}. This result exhibits a mostly static scheduler
+    duration with seldom jitter with maximum of 20us in CPU and I/O bounded loads. But putting the system in to heavy
+    memory loading condition, the result, shown in figure \ref{fig:sd_memory} shows an increased average of scheduler
+    duration and exhibits random jitter up to 34us. The spread of distribution of scheduler duration would also become
+    wilder. This informs us that the scheduler duration is not a static value and will increase alone with the system's
+    load, especially memory related load. This informs that the scheduler runnable task selection process execution time
+    could be lengthen by user-space task, doing memory bounded tasks.
 
-    \begin{figure} \centering \includegraphics[width=3.5in]{img/sd-mild.png} \caption{Scheduler duration of cyclictest
-    with mild load} \label{fig:sd_mild} \end{figure}
+    \begin{figure} \centering \includegraphics[width=3in]{img/sd-cpu.png} \caption{Scheduler duration of cyclictest
+    with CPU bounded load} \label{fig:sd_cpu} \end{figure}
 
-    \begin{figure} \centering \includegraphics[width=3.5in]{img/sd-heavy.png} \caption{Scheduler duration of cyclictest
-    with heavy load} \label{fig:sd_heavy} \end{figure}
+    \begin{figure} \centering \includegraphics[width=3in]{img/sd-memory.png} \caption{Scheduler duration of cyclictest
+    with memory bounded load} \label{fig:sd_memory} \end{figure}
 
-    \begin{figure} \centering \includegraphics[width=3in]{img/sd-heavy-d.png} \caption{Scheduler duration distribution
-    of cyclictest with heavy load} \label{fig:sd_heavy_d} \end{figure}
+    \begin{figure} \centering \includegraphics[width=3in]{img/sd-io.png} \caption{Scheduler duration distribution of
+    cyclictest with I/O bounded load} \label{fig:sd_io} \end{figure}
 
-\subsubsection{Short Inter-Arrival Time}
+    To mitigate the influence of memory bounded tasks, we isolated the real-time task into dedicated CPU core, and
+    pinned memory bounded tasks to another CPU core. In addition, we make the shared L2 cache only accessible from the
+    CPU core, running real-time task. The result of scheduler duration in shown in figure \ref{fig:sd_iso}. The
+    scheduler duration is stabilized and showing as distribution as other loading conditions. The stress memory bounded
+    tasks were designed to spin on malloc and free calls. This suggests us that memory allocation and deallocation would
+    decrease the scheduler performance and increase its execution jitter via cache and memory model. Also, we gathered
+    the result of pining both real-time and loads to same CPU core. Figure \ref{fig:sd_same_no_cache} shows the result
+    of running on CPU core without L2 cache.  Comparing with figure \ref{fig:sd_memory}, result under 2 core SMP, this
+    result showns a slight improvement of average latency and jitter. This informs that shared L2 cache and dynamic
+    number of loading tasks, sharing CPU with real-time task, would be the source of scheduler duration jitter. Thus,
+    decrease the use of dynamic memory allocation, real-time task CPU isolation and cache lockdown could prevent raising
+    the scheduler duration, keeping it as a stable value, about 10us.
 
-    We also captured large jitter of scheduler duration on a mild loaded system. The experiment is running mctest with
-    cyclictest. We pinned kernel module mctest to use first processor, causing cyclictest real-time thread and main
-    thread being scheduler onto second processor. On most of the time, this execution schema results the same result as
-    cyclictest executing solely in the system. But on some occasions, the cyclictest main thread would be waken-up and
-    enter run-queue with short inter-arrival time against the cyclictest real-time thread, which was also being
-    waken-up. When this event happened, the scheduler duration will raise to maximum of 23us. This result, shown in
-    figure \ref{fig:sd_mctest} hints us that not only long term overload system would exhibit large scheduler duration,
-    but also short burst a overloading condition during the real-time task scheduling and execution would cause the
-    scheduler duration to raise.
+    \begin{figure} \centering \includegraphics[width=3in]{img/sd-iso.png} \caption{Scheduler duration of cyclictest with
+    memory bounded load on different cores} \label{fig:sd_iso} \end{figure}
 
-    \begin{figure} \centering \includegraphics[width=3.5in]{img/sd-mctest.png} \caption{Scheduler duration of cyclictest
-    with short inter-arrival time to run-queue against other task} \label{fig:sd_mctest} \end{figure}
+    \begin{figure} \centering \includegraphics[width=3in]{img/sd-same-no-cache.png} \caption{Scheduler duration of
+    cyclictest with memory bounded load on same core} \label{fig:sd_same_no_cache} \end{figure}
 
 \section{Conclusion}
 
