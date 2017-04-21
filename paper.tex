@@ -30,10 +30,10 @@ E24026048@mail.ncku.edu.tw}}
 
 \section{Introduction}
 
-The processing of time-critical tasks, depends upon the capacity of the system to respondto an event, within
-a known and bounded interval of time.
+The processing of time-critical tasks, depends upon the capacity of the system to respond to an event, within
+a known and bounded interval of time. Existing techniques for effectively scheduling real-time workloads on
+multiprocessors has been increasing recently.
 
-Existing techniques for effectively scheduling real-time workloads on multiprocessors has been increasing recently.
 Two factors are driving this movement. First, algorithmic research on this topic has resulted in a number of new
 scheduling approaches that remove some of the fundamental barriers imposed by partitioning approaches, the scheme
 smost commonly considered in earlier work. Second, the landscape in terms of hardware platforms has been changing:
@@ -47,11 +47,6 @@ more core.
 It has been more than 10 years since Linux engineers collaborate on the in-kernel real-time development, real-time
 preemption or PREEMPT\textunderscore RT \cite{rt-linux}. The preemption latency of Linux kernel has been reduced by
 one to several orders of magnitude, allowing it to compete commercial real-time operating systems.
-
-LITMUS\textsuperscript{RT} \cite{LITMUS} is an open source effort for empirically evaluating multiprocessor
-real-time scheduling algorithms implemented with Linux. The tested algorithms were compared based on both
-raw performance and schedulability (with real overheads considered) assuming either hard or soft real-time
-constraints. 
 
 Another relevant Linux-related prior effort is work by Calandrino \textit{et al}. \cite{Lozi:2016:LSD:2901318.2901326},
 who built new tools that check for violation of the invariant online and visualize scheduling activity while analyzing
@@ -67,93 +62,88 @@ performance degradation for synchronization-heavy application on Linux.
     A new tool to visualize scheduling visualize is developed, enabling developers to record the scheduler states
     including executing process ID (PID), PID in scheduler run-queue, context switch points, timer interrupt execution,
     scheduling events, etc. on per processor core basis. It differs from profiling based methodology tools, e.g.
-    perf \cite{perf}, by means of high fidelity and full-profiling fashion of the target system. Our proposed tool can
-    gather entire activities inside Linux kernel in microsecond scale on both x86-64 and ARM system, being able to capture
-    the impact to real-time performance of occasional short-burst scheduler events, which only last less that 10us.
-    These events are mostly not shown in the result of sampling based measurement which focus on average-case execution
-    time(ACET). By analyzing full-detailed record, we are able to not only capture the worst-case execution time (WCET),
-    but also understand the cause of these incidents.
+    perf \cite{perf}, by means of high fidelity and full-profiling fashion of the target system. It gathers entire
+    activities inside Linux kernel in microsecond scale, being able to capture the impact of occasional short-burst
+    scheduler events, which only last less that 10us. These events are mostly not shown in the result of sampling based
+    measurement which focus on average-case execution time. By analyzing full-detailed record, we can not only
+    capture the worst-case execution time (WCET), but also understand the cause of these incidents.
 
-    Moreover, the behavior and loading characteristic of typical work-load used during test in above works, e.g.
-    hackbench, stress \cite{rt-tests}, etc. are far from the real-world real-time applications. These problems not only
-    would reduce the significant of target system jitter measurement, but also will make incidents, harming the
-    real-time performance, obscure. In result of this frustration, we also created a testing framework hosing an
-    algorithm which resembled a real-time robot control system execution behavior, named mctest. This work-load
-    application has the ability to be compiled either as user-space program or kernel module, provides observation of
-    the characteristic of target application execution in both user-space and kernel-space. This would gives the insight
-    of system-call and user-space I/O overhead, which does not exist in kernel module. In addition, mctest would do a
-    series of identically executions and record the execution time of each turn. These records can be used to determined
-    the execution jitter of the application on the real-time system, which besides wakeup latency. This could be used to
-    reflect to the system-call overhead of the system. We have been utilizing mctest as the testing work-load and jitter
-    measurement tool during methodology.
+    Moreover, the behavior and characteristic of typical work-load used in the past, such as hackbench and stress \cite{rt-tests},
+    are far from the real-world real-time applications. In result of this frustration, we also created a testing framework
+    hosting a set of algorithms which resembled a real-time robot control system execution behavior, named after "mctest".
+    It has the ability to be compiled either as user-space program or kernel module, that would give the insight of system-call
+    and user-space I/O overhead, which is eliminated in kernel module expectedly.
+
+    In addition, mctest would do a series of identically executions and record the execution time of each turn. These records
+    can be used to determined the execution jitter of the application on the real-time system, which besides wakeup latency.
+    This could be used to reflect to the system-call overhead of the system. We have been utilizing mctest as the testing
+    work-load and jitter measurement tool during methodology.
 
     \begin{figure} \centering \includegraphics[width=3.5in]{img/latency_timeline.png} \caption{Task Wake-up Latency}
     \label{fig:latency_timeline} \end{figure}
 
 \section{Experiment}
 
-    In aid of these developed tools and work presented above, 
-    We performed multiple experiments on 2 ARM Cortex-A9 based boards, shown in table I, widely adopted by industrial
+    We performed multiple experiments on 2 ARM Cortex-A9 based boards, shown in Table \ref{hardware_list}, widely adopted by industrial
     automation applications. Each test runs Linux kernel version 4.4 and PREEMPT\textunderscore RT \cite{preemptrt} with
-    minimal root file system generated by buildroot \cite{buildroot}.
+    minimal root file system.
 
-    \begin{table*}[] \centering \caption{Experiment Platforms} \begin{tabular}{|l|c|c|} \hline Platform Name & Altera
-        SoC-FPGA Development Kit & NXP i.MX6 Sabre \\ \hline Processor & 2x ARM Cortex-A9 & 4x ARM Cortex-A9 \\
+    \begin{table*}[]
+        \centering \caption{Experiment Platforms}
+        \label{hardware_list}
+	\begin{tabular}{|l|c|c|} \hline Platform Name & Altera
+        Cyclone V Development Kit & NXP i.MX6 Sabre \\ \hline Processor & 2x ARM Cortex-A9 & 4x ARM Cortex-A9 \\
         \hline Memory & 1 GB & 1 GB \\ \hline Additional configuration & None & \begin{tabular}[c]{@{}c@{}}L2 Cache
         locked down to CPU1,\\ Isolated CPU1,\\ Enabled tickless on CPU1 \\ Real-time task pinned to CPU1 \end{tabular}
     \\ \hline \end{tabular} \end{table*}
 
     Our experiment begins with known tuning practices which includes processor isolation \cite{isolatedcpu}, tickless
     feature of kernel \cite{tickless}, L2 cache lockdown. We compared the measurement result of mctest with and without
-    these tuning techniques on Freesacle i.mx6 Sabre platform. Measurement results are shown in figure
-    \ref{fig:imx6_mctest_v}, \ref{fig:imx6_mctest_iso}, and \ref{fig:imx6_mctest_lock}, verifying the effectiveness of
+    these tuning techniques on NXP i.MX6 Sabre platform. Measurement results are shown in
+    Figure \ref{fig:imx6_mctest_v}, \ref{fig:imx6_mctest_iso}, and \ref{fig:imx6_mctest_lock}, verifying the effectiveness of
     these known tuning techniques and providing results as a baseline. We are able to see the WCET with and without
     tuning are 153us and 86us. This gives us the hint that the scheduling would harms the real-time performance. This
     scheduling overhead could be separated into 2 parts, scheduler overhead and cache contention on SMP system. With L2
-    Cache lockdown technique we are able to mitigate most of the cache contention, but still resulting some degree of
-    jitter about 76us in maximum.
+    Cache lockdown we are able to mitigate most of the cache contention, but still resulting some degree of jitter about
+    76us in maximum.
 
-    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-none.png} \caption{Mctest on i.mx6 Sabre}
+    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-none.png} \caption{Mctest on i.MX6 Sabre}
     \label{fig:imx6_mctest_v} \end{figure}
     
-    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-iso.png} \caption{Mctest on i.mx6 Sabre with
+    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-iso.png} \caption{Mctest on i.MX6 Sabre with
     isolated cpu and tickless feature} \label{fig:imx6_mctest_iso} \end{figure}
     
-    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-lock.png} \caption{Mctest on i.mx6 Sabre with
+    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-lock.png} \caption{Mctest on i.MX6 Sabre with
     isolated cpu, tickless feature and L2 cached lockdown} \label{fig:imx6_mctest_lock} \end{figure}
     
-\subsection{System Call Overhead and Kernel Mode Linux}
+    \subsection{Eliminate System Call Overhead}
 
     In addition, we compared the user-space mctest result with kernel space measurement, shown in figure
     \ref{fig:imx6_mctest_k_v} and \ref{fig:imx6_mctest_k_lock} with WCET of 27us and 17us. With these result, we are
     able to identify the sources of jitter are system calls. To mitigate these, we first proposed to rewrite real-time
     applications as kernel modules. But this is tedious and making the debugging process difficult. Thus, we proposed a
-    second approach, Kernel Mode Linux(KML) \cite{KML} \cite{KMLConf}. KML enables the ability for specified user-space
-    program running in kernel memory space. Thus, system calls become jump instructions, not instruction trapping the
-    processor. Also, this would mitigate the cache contention while switching in and out the kernel during system call.
-    In addition, we have also rewired system calls, which have vDSO implementations \cite{vDSO}, to use vDSO
-    implementation via KML. The result of user-space program running in KML is shown in figure \ref{fig:imx6_mctest_kml}
-    with WCET of 27us (excluding initialization jitter), which proving the effectiveness of jitter mitigation from KML.
+    second approach, Kernel Mode Linux(KML) \cite{KML} \cite{KMLConf}, allowing userspace programs running in kernel
+    address space. Thus, system calls become jump instructions instead of instructions that traps the processor. Also,
+    this would mitigate the cache contention while switching in and out the kernel during system call.
+    In addition, we have wrapped system calls with vDSO \cite{vDSO} for better compatibility. It results in
+    user-space program running in KML with WCET similar to Linux kernel module variants.
 
-    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-k-none.png} \caption{Kernel mctest on i.mx6 Sabre}
+    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-k-none.png} \caption{Kernel mctest on i.MX6 Sabre}
     \label{fig:imx6_mctest_k_v} \end{figure}
     
-    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-k-lock.png} \caption{Kernel mctest on i.mx6 Sabre
+    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-k-lock.png} \caption{Kernel mctest on i.MX6 Sabre
     with isolated cpu, tickless feature and L2 cached lockdown} \label{fig:imx6_mctest_k_lock} \end{figure}
-    
-    \begin{figure} \centering \includegraphics[width=3in]{img/mctest-kml.png} \caption{Mctest on i.mx6 Sabre with
-    isolated cpu, tickless feature in KML} \label{fig:imx6_mctest_kml} \end{figure}
     
 \subsection{Scheduler Overhead Measurement}
     
     Identifying that scheduler is also a source of jitter, we applied our proposed scheduler profiling tool to evaluate
     and identify of which part of the scheduling process is the source of jitter. Knowing the IRQ latency, and
     context-switching latency, we would like to evaluate the scheduler duration. Traditionally, the latency of this part
-    is considered static with the CFS algorithm complexity, designed to be O(1), but real measurement result are
+    is considered static with the CFS algorithm complexity, designed to be O(1), but real measurement results are
     lacking. Thus, we set our proposed profiler to record the increment of scheduler run-queue and scheduler
     context-switching events with switched-to PID of each processors. A analyzer will process the recorded data and
     gives out the scheduler duration of a specified process, enabling us the understand the scheduling of real-time task
-    in SMP system. The result of running a solo instance of cyclictest on SoC-FPGA Development Kit is shown in figure
+    in SMP system. The result of running a solo instance of cyclictest on Cyclone V Development Kit is shown in figure
     \ref{fig:sd_noload}. The latency could be considered static with maximum 17us. This result matches traditional
     considerations, but with the interference from other work-load, the jitter will start to emerge.
 
@@ -163,7 +153,7 @@ performance degradation for synchronization-heavy application on Linux.
 \subsubsection{Scheduler Duration under Different Loading Condition}
 
     To measure the source of scheduler duration jitter, We created additional work-load, executing alone with
-    cyclictest, schedulered with schedFIFO with highest priority in SoC-FPGA based system, during profiling session. We
+    cyclictest, with FIFO scheduling policy and highest priority in Cyclone V based system, during profiling session. We
     created a overloaded condition, which has 8 stress threads, doing either CPU, memory or I/O bounded task. The
     scheduler duration of cyclictest real-time task under each type of loading condition is shown in figure
     \ref{fig:sd_cpu}, \ref{fig:sd_memory}, and \ref{fig:sd_io}. This result exhibits a mostly static scheduler
