@@ -44,29 +44,37 @@ more core.
 
 \section{Related Work}
 
+It has been more than 10 years since Linux engineers collaborate on the in-kernel real-time development, real-time
+preemption or PREEMPT\textunderscore RT \cite{rt-linux}. The preemption latency of Linux kernel has been reduced by
+one to several orders of magnitude, allowing it to compete commercial real-time operating systems.
+
 LITMUS\textsuperscript{RT} \cite{LITMUS} is an open source effort for empirically evaluating multiprocessor
 real-time scheduling algorithms implemented with Linux. The tested algorithms were compared based on both
 raw performance and schedulability (with real overheads considered) assuming either hard or soft real-time
 constraints. 
 
+Another relevant Linux-related prior effort is work by Calandrino \textit{et al}. \cite{Lozi:2016:LSD:2901318.2901326},
+who built new tools that check for violation of the invariant online and visualize scheduling activity while analyzing
+performance degradation for synchronization-heavy application on Linux.
+
 \section{Methodology}
 
-    Based on the works presented above, we have methods to measure the overall wake-up latency and context-switch
-    latency, using cyclictest and lmbench. Also, it's able to show that the CFS algorithm has O(1) complexity on
-    selecting next task, giving static latency. Thus, overall  and parts of latency of a Linux system can be determined,
-    but the measurement methodology and tool of scheduler latency, shown in figure \ref{fig:latency_timeline}, are
-    lacking. Therefore, we developed a evaluation tool of scheduler duration jitter, based on methodology method of A
-    Decade of Wasted Cores \cite{Lozi:2016:LSD:2901318.2901326}. This methodology method enabled us to record the
-    scheduler states including, executing process ID (PID), PID in scheduler run-queue, context switch points, timer
-    interrupt execution, scheduling events, etc. on per processor core basis. This methodology method differs from
-    profiling based methodology tools, e.g. perf \cite{perf}, lacking of high fidelity, all-recorded profiling result of
-    the target system. Our proposed tool can do full-detailed record in microsecond scale on x86-64 and ARM system,
-    which is able to capture the impact to real-time performance of occasional short-burst scheduler events, which only
-    last less that 10us. These events are mostly not shown in the result of sampling based measurement which focus on
-    average-case execution time(ACET). By analyzing full-detailed record, we are able to not only capture the worst-case
-    execution time (WCET), but also understand the cause of these incidents.
+    The Completely Fair Scheduler (CFS) is a process scheduler which was merged into the 2.6.23 release of Linux kernel
+    and is the default scheduler with O(1) complexity on selecting next task, giving static latency. In other words, parts
+    of latency source of a Linux-based real-time system can be determined, at least for scheduler duration, shown in
+    Figure \ref{fig:latency_timeline}.
 
-    In addition, the behavior and loading characteristic of typical work-load used during test in above works, e.g.
+    A new tool to visualize scheduling visualize is developed, enabling developers to record the scheduler states
+    including executing process ID (PID), PID in scheduler run-queue, context switch points, timer interrupt execution,
+    scheduling events, etc. on per processor core basis. It differs from profiling based methodology tools, e.g.
+    perf \cite{perf}, by means of high fidelity and full-profiling fashion of the target system. Our proposed tool can
+    gather entire activities inside Linux kernel in microsecond scale on both x86-64 and ARM system, being able to capture
+    the impact to real-time performance of occasional short-burst scheduler events, which only last less that 10us.
+    These events are mostly not shown in the result of sampling based measurement which focus on average-case execution
+    time(ACET). By analyzing full-detailed record, we are able to not only capture the worst-case execution time (WCET),
+    but also understand the cause of these incidents.
+
+    Moreover, the behavior and loading characteristic of typical work-load used during test in above works, e.g.
     hackbench, stress \cite{rt-tests}, etc. are far from the real-world real-time applications. These problems not only
     would reduce the significant of target system jitter measurement, but also will make incidents, harming the
     real-time performance, obscure. In result of this frustration, we also created a testing framework hosing an
@@ -84,13 +92,13 @@ constraints.
 
 \section{Experiment}
 
-    In aid of these developed tools and work presented above, we did multiple experiments and measurement of 2 ARM
-    Cortex-A9 based platform, shown in table I. These platforms are selected as CMP based ARM system are emerging and
-    being used in a wide field of applications. These systems are running buildroot \cite{buildroot} built Linux with
-    kernel version 4.4 and PREEMPT\textunderscore RT \cite{preemptrt} patches.
+    In aid of these developed tools and work presented above, 
+    We performed multiple experiments on 2 ARM Cortex-A9 based boards, shown in table I, widely adopted by industrial
+    automation applications. Each test runs Linux kernel version 4.4 and PREEMPT\textunderscore RT \cite{preemptrt} with
+    minimal root file system generated by buildroot \cite{buildroot}.
 
     \begin{table*}[] \centering \caption{Experiment Platforms} \begin{tabular}{|l|c|c|} \hline Platform Name & Altera
-        SoC FPGA Development Kit & Freescale i.mx6 Sabre \\ \hline Processor & 2x ARM Cortex-A9 & 4x ARM Cortex-A9 \\
+        SoC-FPGA Development Kit & NXP i.MX6 Sabre \\ \hline Processor & 2x ARM Cortex-A9 & 4x ARM Cortex-A9 \\
         \hline Memory & 1 GB & 1 GB \\ \hline Additional configuration & None & \begin{tabular}[c]{@{}c@{}}L2 Cache
         locked down to CPU1,\\ Isolated CPU1,\\ Enabled tickless on CPU1 \\ Real-time task pinned to CPU1 \end{tabular}
     \\ \hline \end{tabular} \end{table*}
@@ -99,7 +107,7 @@ constraints.
     feature of kernel \cite{tickless}, L2 cache lockdown. We compared the measurement result of mctest with and without
     these tuning techniques on Freesacle i.mx6 Sabre platform. Measurement results are shown in figure
     \ref{fig:imx6_mctest_v}, \ref{fig:imx6_mctest_iso}, and \ref{fig:imx6_mctest_lock}, verifying the effectiveness of
-    these known tuning techniques and providing results as a baseline. We are able to see the WECT with and without
+    these known tuning techniques and providing results as a baseline. We are able to see the WCET with and without
     tuning are 153us and 86us. This gives us the hint that the scheduling would harms the real-time performance. This
     scheduling overhead could be separated into 2 parts, scheduler overhead and cache contention on SMP system. With L2
     Cache lockdown technique we are able to mitigate most of the cache contention, but still resulting some degree of
@@ -117,7 +125,7 @@ constraints.
 \subsection{System Call Overhead and Kernel Mode Linux}
 
     In addition, we compared the user-space mctest result with kernel space measurement, shown in figure
-    \ref{fig:imx6_mctest_k_v} and \ref{fig:imx6_mctest_k_lock} with WECT of 27us and 17us. With these result, we are
+    \ref{fig:imx6_mctest_k_v} and \ref{fig:imx6_mctest_k_lock} with WCET of 27us and 17us. With these result, we are
     able to identify the sources of jitter are system calls. To mitigate these, we first proposed to rewrite real-time
     applications as kernel modules. But this is tedious and making the debugging process difficult. Thus, we proposed a
     second approach, Kernel Mode Linux(KML) \cite{KML} \cite{KMLConf}. KML enables the ability for specified user-space
@@ -125,7 +133,7 @@ constraints.
     processor. Also, this would mitigate the cache contention while switching in and out the kernel during system call.
     In addition, we have also rewired system calls, which have vDSO implementations \cite{vDSO}, to use vDSO
     implementation via KML. The result of user-space program running in KML is shown in figure \ref{fig:imx6_mctest_kml}
-    with WECT of 27us (excluding initialization jitter), which proving the effectiveness of jitter mitigation from KML.
+    with WCET of 27us (excluding initialization jitter), which proving the effectiveness of jitter mitigation from KML.
 
     \begin{figure} \centering \includegraphics[width=3in]{img/mctest-k-none.png} \caption{Kernel mctest on i.mx6 Sabre}
     \label{fig:imx6_mctest_k_v} \end{figure}
@@ -145,7 +153,7 @@ constraints.
     lacking. Thus, we set our proposed profiler to record the increment of scheduler run-queue and scheduler
     context-switching events with switched-to PID of each processors. A analyzer will process the recorded data and
     gives out the scheduler duration of a specified process, enabling us the understand the scheduling of real-time task
-    in SMP system. The result of running a solo instance of cyclictest on SoC FPGA Development Kit is shown in figure
+    in SMP system. The result of running a solo instance of cyclictest on SoC-FPGA Development Kit is shown in figure
     \ref{fig:sd_noload}. The latency could be considered static with maximum 17us. This result matches traditional
     considerations, but with the interference from other work-load, the jitter will start to emerge.
 
@@ -155,7 +163,7 @@ constraints.
 \subsubsection{Scheduler Duration under Different Loading Condition}
 
     To measure the source of scheduler duration jitter, We created additional work-load, executing alone with
-    cyclictest, schedulered with schedFIFO with highest priority in SoCFPGA based system, during profiling session. We
+    cyclictest, schedulered with schedFIFO with highest priority in SoC-FPGA based system, during profiling session. We
     created a overloaded condition, which has 8 stress threads, doing either CPU, memory or I/O bounded task. The
     scheduler duration of cyclictest real-time task under each type of loading condition is shown in figure
     \ref{fig:sd_cpu}, \ref{fig:sd_memory}, and \ref{fig:sd_io}. This result exhibits a mostly static scheduler
