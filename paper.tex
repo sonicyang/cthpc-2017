@@ -15,32 +15,32 @@
 
 \begin{document}
 
-\title{Title}
+\title{An Empirical Measurement-Based Analysis for Linux-based Real-Time Multiprocessor Scheduling}
 
 \author{\IEEEauthorblockN{Ching-Chun (Jim) Huang} \IEEEauthorblockA{Department of\\Computer Science and Information
-Engineering\\National Cheng Kung University, Taiwan\\ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)\\ Email:
-jserv@ccns.ncku.edu.tw} \and \IEEEauthorblockN{Chung-Fan Yang} \IEEEauthorblockA{Department of Electrical Engineering\\
-National Cheng Kung University, Taiwan\\ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)\\ Email:
-E24026048@mail.ncku.edu.tw}}
+Engineering\\National Cheng Kung University, Taiwan\\ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}
+\and \IEEEauthorblockN{Chung-Fan Yang} \IEEEauthorblockA{Department of Electrical Engineering\\
+National Cheng Kung University, Taiwan\\ No.1, University Road, Tainan City 701, Taiwan (R.O.C.)}}
 
 \maketitle
 
 \begin{abstract}
+A real-time, Linux-based testbed, which we have developed for empirically evaluating multiprocessor
+scheduling hehavior is presented, along with various enhancements that remove some of the fundamental
+barriers to eliminate potential latency. Both raw performance and schedulability are considered for
+hard real-time constraints. To our knowledge, this paper is the first attempt by anyone to obtain
+comprehensive performance results regarding the scheduler and its interaction with external events.
 \end{abstract}
 
 \section{Introduction}
 
 The processing of time-critical tasks, depends upon the capacity of the system to respond to an event, within
-a known and bounded interval of time. Existing techniques for effectively scheduling real-time workloads on
-multiprocessors has been increasing recently.
+a known and bounded interval of time. We have constructed a set of system utilities as a testbed to discover
+Linux scheduling, multi-core overhead and real-time performance from microscopic view.
 
-Two factors are driving this movement. First, algorithmic research on this topic has resulted in a number of new
-scheduling approaches that remove some of the fundamental barriers imposed by partitioning approaches, the scheme
-smost commonly considered in earlier work. Second, the landscape in terms of hardware platforms has been changing:
-"server-class" multiprocessor machines have been availablefor some time now, and SoC vendors are shifting to
-multi-core technologies as a solution to the "thermal roadblock" imposed by single-core designs. In multicore
-platforms, several processor cores are placed on a single chip. Most major chip manufacturers currently offer
-more core.
+The landscape in terms of hardware platforms has been changing: "server-class" multiprocessor machines have
+been available for some time now, and SoC vendors are shifting to multi-core technologies as real-time system
+solutions. Our goal was to produce a platform that supports both static and dynamic workloads for real-time constraints.
 
 \section{Related Work}
 
@@ -193,13 +193,12 @@ performance degradation for synchronization-heavy application on Linux.
     cyclictest with memory bounded load on same core} \label{fig:sd_same_no_cache} \end{figure}
 
 \section{Conclusion}
-
-    We have evaluated the real-time behavior of Linux by profiling kernel scheduler and measuring the latency of various
-    kernel variants. An intensive interrupt load can cause long OS latencies due to the design of the interrupt
+    We have evaluated Linux real-time behavior by profiling kernel scheduler and measuring the latency.
+    An intensive interrupt load can cause long OS latencies due to the design of the interrupt
     processing mechanism. We proposed new tools to visualize task scheduling in fine-grained scale(microsecond level).
-    This enabled us not only focusing on interrupt latency, but also scheduler durations, lock, and etc. It would thus
-    be highly desirable to combine existing techniques, e.g KML, isolated CPU, tickless kernel, to improve task
-    responsiveness under various target application characteristics, on top of PREEMPT\textunderscore RT.
+    It encourages us to focus on not only interrupt latency but also scheduler durations, lock, etc., andt would thus
+    be highly desirable to combine existing techniques, e.g isolated CPU, tickless kernel, to improve task responsiveness
+    under various target application characteristics, with our testbed.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
