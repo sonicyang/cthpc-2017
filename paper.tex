@@ -59,7 +59,7 @@ performance degradation for synchronization-heavy application on Linux.
     of latency source of a Linux-based real-time system can be determined, at least for scheduler duration, shown in
     Figure \ref{fig:latency_timeline}.
 
-    A new tool to visualize scheduling visualize is developed, enabling developers to record the scheduler states
+    A new tool to visualize scheduling is developed, enabling developers to record the scheduler states
     including executing process ID (PID), PID in scheduler run-queue, context switch points, timer interrupt execution,
     scheduling events, etc. on per processor core basis. It differs from profiling based methodology tools, e.g.
     perf \cite{perf}, by means of high fidelity and full-profiling fashion of the target system. It gathers entire
@@ -119,7 +119,7 @@ performance degradation for synchronization-heavy application on Linux.
     \subsection{Eliminate System Call Overhead}
 
     In addition, we compared the user-space mctest result with kernel space measurement, shown in figure
-    \ref{fig:imx6_mctest_k_v} and \ref{fig:imx6_mctest_k_lock} with WCET of 27us and 17us. With these result, we are
+    \ref{fig:imx6_mctest_k_v} and \ref{fig:imx6_mctest_k_lock} with WCET of 27us and 17us. With these results, we are
     able to identify the sources of jitter are system calls. To mitigate these, we first proposed to rewrite real-time
     applications as kernel modules. But this is tedious and making the debugging process difficult. Thus, we proposed a
     second approach, Kernel Mode Linux(KML) \cite{KML} \cite{KMLConf}, allowing userspace programs running in kernel
