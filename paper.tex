@@ -156,9 +156,8 @@ performance degradation for synchronization-heavy application on Linux.
     \ref{fig:sd_cpu}, \ref{fig:sd_memory}, and \ref{fig:sd_io}. This result exhibits a mostly static scheduler
     duration with seldom jitter with maximum of 20us in CPU and I/O bounded loads. But putting the system in to heavy
     memory loading condition, the result, shown in figure \ref{fig:sd_memory} shows an increased average of scheduler
-    duration and exhibits random jitter up to 34us. The spread of distribution of scheduler duration would also become
-    wilder. This informs us that the scheduler duration is not a static value and will increase alone with the system's
-    load, especially memory related load. This informs that the scheduler runnable task selection process execution time
+    duration and exhibits random jitter up to 34us. The spread of distribution of scheduler duration would also become wilder, that implies scheduler duration is not a static value and will increase alone with the system load, especially memory related load.
+    Therefore, the scheduler runnable task selection process execution time
     could be lengthen by user-space task, doing memory bounded tasks.
 
     \begin{figure} \centering \includegraphics[width=3in]{img/sd-cpu.png} \caption{Scheduler duration of cyclictest
@@ -176,9 +175,11 @@ performance degradation for synchronization-heavy application on Linux.
     scheduler duration is stabilized and showing as distribution as other loading conditions. The stress memory bounded
     tasks were designed to spin on malloc and free calls. This suggests us that memory allocation and deallocation would
     decrease the scheduler performance and increase its execution jitter via cache and memory model. Also, we gathered
-    the result of pining both real-time and loads to same CPU core. Figure \ref{fig:sd_same_no_cache} shows the result
+    the result of pining both real-time and loads to same CPU core.
+    
+    Figure \ref{fig:sd_same_no_cache} shows the result
     of running on CPU core without L2 cache.  Comparing with figure \ref{fig:sd_memory}, result under 2 core SMP, this
-    result showns a slight improvement of average latency and jitter. This informs that shared L2 cache and dynamic
+    result showns a slight improvement of average latency and jitter, that means shared L2 cache and dynamic
     number of loading tasks, sharing CPU with real-time task, would be the source of scheduler duration jitter. Thus,
     decrease the use of dynamic memory allocation, real-time task CPU isolation and cache lockdown could prevent raising
     the scheduler duration, keeping it as a stable value, about 10us.
